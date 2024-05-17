@@ -9,16 +9,17 @@ import (
 )
 
 type Options struct {
-	prompt                  prompts.PromptTemplate
-	memory                  schema.Memory
-	callbacksHandler        callbacks.Handler
-	errorHandler            *ParserErrorHandler
-	maxIterations           int
-	returnIntermediateSteps bool
-	outputKey               string
-	promptPrefix            string
-	formatInstructions      string
-	promptSuffix            string
+	prompt                    prompts.PromptTemplate
+	memory                    schema.Memory
+	callbacksHandler          callbacks.Handler
+	errorHandler              *ParserErrorHandler
+	maxIterations             int
+	returnIntermediateSteps   bool
+	outputKey                 string
+	promptPrefix              string
+	formatInstructions        string
+	promptSuffix              string
+	acceptNonPrefixedResponse bool
 
 	// openai
 	systemMessage string
@@ -86,6 +87,12 @@ func (co Options) getConversationalPrompt(tools []tools.Tool) prompts.PromptTemp
 		co.formatInstructions,
 		co.promptSuffix,
 	)
+}
+
+func withAcceptNonPrefixedResponse() Option {
+	return func(co *Options) {
+		co.acceptNonPrefixedResponse = true
+	}
 }
 
 // WithMaxIterations is an option for setting the max number of iterations the executor
