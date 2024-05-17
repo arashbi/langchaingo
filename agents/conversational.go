@@ -35,7 +35,8 @@ type ConversationalAgent struct {
 	// Output key is the key where the final output is placed.
 	OutputKey string
 	// CallbacksHandler is the handler for callbacks.
-	CallbacksHandler callbacks.Handler
+	CallbacksHandler          callbacks.Handler
+	AcceptNonPrefixedResponse bool
 }
 
 var _ Agent = (*ConversationalAgent)(nil)
@@ -52,9 +53,10 @@ func NewConversationalAgent(llm llms.Model, tools []tools.Tool, opts ...Option) 
 			options.getConversationalPrompt(tools),
 			chains.WithCallback(options.callbacksHandler),
 		),
-		Tools:            tools,
-		OutputKey:        options.outputKey,
-		CallbacksHandler: options.callbacksHandler,
+		Tools:                     tools,
+		AcceptNonPrefixedResponse: options.acceptNonPrefixedResponse,
+		OutputKey:                 options.outputKey,
+		CallbacksHandler:          options.callbacksHandler,
 	}
 }
 
@@ -147,6 +149,16 @@ func (a *ConversationalAgent) parseOutput(output string) ([]schema.AgentAction, 
 	r := regexp.MustCompile(`Action: (.*?)[\n]*Action Input: (.*)`)
 	matches := r.FindStringSubmatch(output)
 	if len(matches) == 0 {
+		if a.AcceptNonPrefixedResponse {
+			finishAction := &schema.AgentFinish{
+				ReturnValues: map[string]any{
+					a.OutputKey: output,
+				},
+				Log: output,
+			}
+
+			return nil, finishAction, nil
+		}
 		return nil, nil, fmt.Errorf("%w: %s", ErrUnableToParseOutput, output)
 	}
 

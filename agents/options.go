@@ -89,7 +89,7 @@ func (co Options) getConversationalPrompt(tools []tools.Tool) prompts.PromptTemp
 	)
 }
 
-func withAcceptNonPrefixedResponse() Option {
+func WithAcceptNonPrefixedResponse() Option {
 	return func(co *Options) {
 		co.acceptNonPrefixedResponse = true
 	}
